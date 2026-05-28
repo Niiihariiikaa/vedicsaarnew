@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  background-size: cover;
+  font-family: 'Ibarra Real Nova', serif;
+  overflow-x: hidden;
+}
+
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+/* ── FLIP TEXT ── */
+.flip-wrap,
+.flip-wrap-big,
+.flip-wrap-sm {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  height: 1.15em;
+}
+.flip-wrap-big { height: 1.1em; }
+
+.flip-word,
+.flip-big,
+.flip-sm {
+  display: block;
+  animation: flipWords 6s infinite;
+}
+
+.flip-word span,
+.flip-big span,
+.flip-sm span {
+  display: block;
+  height: 1.15em;
+  line-height: 1.15em;
+}
+
+@keyframes flipWords {
+  0%,  38% { transform: translateY(0); }
+  45%, 88% { transform: translateY(-50%); }
+  95%,100% { transform: translateY(0); }
+}
+
+/* ── SLIDE TRANSITION ── */
+.slide-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+  transform: translateZ(0);
+  transition: opacity 0.8s ease;
+}
+.slide-img.active { opacity: 1; }
+
+/* Isolate slider stacking context — prevents repaint propagation to parent */
+.hero-slider-wrap { isolation: isolate; }
+
+/* ── STAT COUNTER FADE-UP ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stat-animate {
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards;
+}
+.stat-animate:nth-child(1) { animation-delay: 0s; }
+.stat-animate:nth-child(2) { animation-delay: 0.15s; }
+.stat-animate:nth-child(3) { animation-delay: 0.3s; }
+
+/* ── GLOW PULSE ── */
+@keyframes goldPulse {
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(184,134,11,0.5); }
+  50%       { box-shadow: 0 0 22px 6px rgba(184,134,11,0.85); }
+}
+.glow-pulse {
+  animation: goldPulse 2s ease-in-out infinite;
+}
+
+/* ── FLOATING ANIMATIONS ──
+   moon-float  : gentle vertical bob (moon in section 2)
+   crystal-float: slightly slower, slightly larger travel
+   Both use translateY only — GPU composited, zero layout cost
+── */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-16px); }
+}
+
+@keyframes floatYCrystal {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-22px); }
+}
+
+.moon-float {
+  animation: floatY 5s ease-in-out infinite;
+}
+
+.crystal-float {
+  animation: floatYCrystal 7s ease-in-out infinite;
+}
+
+/* ── RESPONSIVE ── */
+
+@media (max-width: 1024px) {
+  /* Hero: single column */
+  .home-hero {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+    padding: 40px 0 !important;
+  }
+  .home-hero-left {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    text-align: center;
+    padding: 40px 24px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .home-hero-left h1 {
+    margin-left: 0 !important;
+    transform: none !important;
+    font-size: clamp(44px, 10vw, 72px) !important;
+  }
+  .home-hero-left p      { margin-left: 0 !important; }
+  .home-hero-left button { margin-left: 0 !important; }
+  .home-hero-right       { display: none !important; }
+  .hero-slider-wrap      { height: 480px !important; }
+  .hero-capsule {
+    height: 440px !important;
+    width: min(370px, 80vw) !important;
+    border-radius: 220px 220px 0 0 !important;
+  }
+
+  /*
+    Hero decorations — matched to desktop overlap geometry.
+    Formula: right: calc(50% - 240px) keeps the planet overlapping the capsule's
+    right edge by ~110px regardless of viewport width (same as desktop).
+    left: calc(50% - 280px) keeps the crystal 90px into the capsule's left edge.
+  */
+  .home-hero-planet {
+    width: 120px !important;
+    height: 145px !important;
+    top: 15px !important;
+    right: calc(50% - 240px) !important;
+    left: auto !important;
+  }
+  .home-hero-crystal {
+    width: 140px !important;
+    height: 125px !important;
+    bottom: 15px !important;
+    left: calc(50% - 280px) !important;
+    right: auto !important;
+  }
+
+  /* About: single col at tablet — hide both arch images, center text only */
+  .home-about-grid {
+    grid-template-columns: 1fr !important;
+    align-items: center !important;
+  }
+  .home-about-col-left   { display: none !important; }
+  .home-about-right-wrap { display: none !important; }
+
+  /* About section decorative floats — hidden at tablet */
+  .home-float-decor { display: none !important; }
+
+  /* KnowYourAstrologer */
+  .astrologer-row    { flex-direction: column !important; align-items: center !important; }
+  /*
+    min-height must fit the sunburst (up to 680px) so rays aren't clipped.
+    overflow-x:hidden prevents horizontal scroll; overflow-y must be visible so
+    the sunburst SVG (which overflows the photo container) remains fully rendered.
+  */
+  .astrologer-left   { width: 100% !important; min-width: 0 !important; height: auto !important; min-height: 700px; }
+  .astrologer-right  { padding: 40px 24px !important; max-width: 100% !important; }
+  .astrologer-section { min-height: auto !important; overflow-x: hidden !important; overflow-y: visible !important; }
+  .astrologer-zodiac  { display: none !important; }
+  .astrologer-orb     { display: none !important; }
+  /*
+    Desktop ratio: sunburst 680px / photo 400px = 1.7×.
+    min(680px, 95vw) preserves this ratio at all tablet/mobile widths so the
+    golden rays are equally prominent as on desktop.
+  */
+  .astrologer-sunburst {
+    width: min(680px, 95vw) !important;
+    height: min(680px, 95vw) !important;
+  }
+
+  /* MysticalServices: reset desktop-tuned negative margins + fix h2 internal spacing */
+  .mystical-section {
+    margin-top: -30px !important;
+    padding-top: 60px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  .mystical-section h2 {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* ServicesGrid */
+  .sg-section { margin-top: -60px !important; }
+  .sg-heading-wrap { margin-top: 100px !important; padding-top: 20px !important; }
+
+  /* Testimonials */
+  .testimonials-section { padding-left: 24px !important; padding-right: 24px !important; }
+  .testimonials-inner { flex-direction: column !important; gap: 48px !important; align-items: center !important; }
+  .testimonials-stack-wrap { width: min(520px, 90vw) !important; height: 340px !important; margin: 0 auto !important; }
+}
+
+@media (max-width: 640px) {
+  .hero-slider-wrap {
+    height: 320px !important;
+    display: flex;
+    justify-content: center;
+  }
+  .hero-capsule {
+    max-width: min(250px, 72vw) !important;
+    height: 300px !important;
+    border-radius: min(140px, 36vw) min(140px, 36vw) 0 0 !important;
+  }
+  /* About: single column, hide both arch images, show only center text */
+  .home-about-grid       { grid-template-columns: 1fr !important; }
+  .home-about-col-left   { display: none !important; }
+  .home-about-right-wrap { display: none !important; }
+
+  /* Planet & crystal — visible on mobile, sized/positioned for 280px capsule */
+  .home-hero-decor { display: block !important; }
+  .home-hero-planet {
+    width: 80px !important;
+    height: 95px !important;
+    top: 8px !important;
+    right: calc(50% - 155px) !important;
+    left: auto !important;
+  }
+  .home-hero-crystal {
+    width: 85px !important;
+    height: 75px !important;
+    bottom: 8px !important;
+    left: max(6px, calc(50% - 165px)) !important;
+    right: auto !important;
+  }
+}
+
+/* Global mobile padding */
+@media (max-width: 768px) {
+  .mobile-col-1 { grid-template-columns: 1fr !important; }
+  .mobile-pad   { padding-left: 20px !important; padding-right: 20px !important; }
+  .cta-btn      { padding: 14px 28px !important; font-size: 10px !important; }
+  .hero-decor   { display: none !important; }
+  .hero-section { overflow: hidden !important; }
+  .constellation-img {
+    width: min(260px, 75vw) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  button { white-space: normal !important; }
+  .why-dark-box  { margin: 0 0 40px !important; padding: 32px 20px !important; }
+  .about-hero-img    { width: min(180px, 38vw) !important; }
+  .about-wheel-decor { display: none !important; }
+  .about-who-section { overflow: hidden !important; }
+}
+
+/* ── Global: black CTA buttons use gold dashed border ── */
+.cta-btn {
+  border: 2px dashed rgba(201,169,110,0.65) !important;
+}
+
+/* ── REDUCED MOTION — pauses CSS animations for accessibility + weak devices ── */
+@media (prefers-reduced-motion: reduce) {
+  .flip-word,
+  .flip-big,
+  .flip-sm {
+    animation: none !important;
+  }
+  .moon-float,
+  .crystal-float {
+    animation: none !important;
+  }
+}
+
+/* ── FONTS ── */
+@font-face {
+  font-family: 'Lathusca';
+  src: url('/assets/fonts/Awesome Lathusca.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: url('/assets/fonts/glacial-indifference.regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
