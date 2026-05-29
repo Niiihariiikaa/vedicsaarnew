@@ -241,7 +241,7 @@ function MantraPanel({ mantra, isPlaying, onToggle, progress, onSeek }) {
 
   return (
     <div ref={panelRef} style={{
-      background: 'rgba(52,33,10,0.96)',
+      background: 'rgba(10,5,1,0.98)',
       border: `2px dashed ${mantra.color}`,
       borderRadius: 10,
       overflow: 'hidden',

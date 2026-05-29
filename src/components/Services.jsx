@@ -6,21 +6,22 @@ const services = [
     tag: "Astrology",
     title: "Vedic\nAstrology",
     body: "Discover the ancient science of Jyotish Shastra. Our detailed birth chart analysis reveals the cosmic influences shaping your personality, relationships, career, and spiritual journey.",
-    img: "/assets/vedic.webp",
+    img: "/assets/vedicastro.png",
     route: "/vedic-astrology",
   },
   {
     tag: "Numbers",
     title: "Numerology",
     body: "Numbers hold the key to understanding your life's purpose. Through Vedic numerology, uncover hidden patterns in your name and birth date that influence your destiny.",
-    img: "/assets/numerology.webp",
+    img: "/assets/nume.png",
+    imgStyle: { transform: 'scale(1.3)', transformOrigin: 'center' },
     route: "/numerology",
   },
   {
     tag: "Architecture",
     title: "Vastu\nShastra",
     body: "Harmonize your living and working spaces with the ancient science of Vastu. Align your environment with cosmic energies to attract abundance, health, and happiness.",
-    img: "/assets/vastu.webp",
+    img: "/assets/vaastunew.png",
     route: "/vaastu",
   },
 ];
@@ -157,6 +158,7 @@ export default function MysticalServices() {
                 loading="lazy"
                 decoding="async"
                 className="ms-card__img absolute inset-0 w-full h-full object-cover"
+                style={s.imgStyle || {}}
               />
 
               {/* Gradient overlay */}

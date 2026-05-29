@@ -1,6 +1,6 @@
 import { motion, useMotionValue, useTransform } from 'motion/react';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function CardRotate({ children, onSendToBack, sensitivity, disableDrag = false }) {
   const x = useMotionValue(0);
@@ -144,6 +144,14 @@ export default function Stack({
     }
   }, [autoplay, autoplayDelay, stack, isPaused]);
 
+  const rotations = useRef({});
+  const getRotation = (id) => {
+    if (!rotations.current[id]) {
+      rotations.current[id] = randomRotation ? Math.random() * 10 - 5 : 0;
+    }
+    return rotations.current[id];
+  };
+
   return (
     <div
       className="relative w-full h-full"
@@ -154,7 +162,7 @@ export default function Stack({
       onMouseLeave={() => pauseOnHover && setIsPaused(false)}
     >
       {stack.map((card, index) => {
-        const randomRotate = randomRotation ? Math.random() * 10 - 5 : 0;
+        const randomRotate = getRotation(card.id);
         return (
           <CardRotate
             key={card.id}

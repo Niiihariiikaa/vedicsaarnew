@@ -192,8 +192,10 @@ const Testimonials = () => {
     backgroundImage: "url('/assets/Testimonialsbg.png')",
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'top center', 
-    marginTop: -38, // 👈 KEY LINE
+    backgroundPosition: 'top center',
+    marginTop: -38,
+    contentVisibility: 'auto',
+    containIntrinsicSize: '0 700px',
   }}
 >
       {/* dark overlay so text stays readable */}

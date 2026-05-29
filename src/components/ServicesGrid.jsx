@@ -226,6 +226,8 @@ export default function ServicesGrid() {
           padding-bottom: 100px;
           z-index: 20;
           margin-top: -500px;
+          content-visibility: auto;
+          contain-intrinsic-size: 0 1200px;
         }
         .sg-bg {
           position: absolute;
