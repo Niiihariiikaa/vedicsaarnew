@@ -358,7 +358,7 @@ export default function Homepage() {
                 style={{ width: 'min(500px, 100%)', height: 'min(480px, 65vw)', borderRadius: '0px 300px 300px 0px' }}
               >
                 <img
-                  src="/assets/section1.webp"
+                  src="/assets/section1.png"
                   alt="Tarot reading"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -366,20 +366,7 @@ export default function Homepage() {
                 />
               </div>
               {/* Beige crystal float */}
-              <div
-                ref={crystal2Ref}
-                className="absolute pointer-events-none z-10 home-float-decor"
-                style={{
-                  left: '-40px',
-                  top: '-150px',
-                  width: '250px',
-                  height: '250px',
-                  backgroundImage: "url('/assets/beige.webp')",
-                  backgroundSize: 'contain',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'center',
-                }}
-              />
+             
             </div>
 
             {/* Centre text */}
