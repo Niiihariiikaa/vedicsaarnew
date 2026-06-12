@@ -39,6 +39,21 @@ const SERVICES = [
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Consultation fee in paise (₹500 = 50000)
+const CONSULTATION_FEE = 50000;
+const FEE_DISPLAY = "₹500";
+
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function BookingModal({ isOpen, onClose, preselectedService = "" }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -87,27 +102,89 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
     return null;
   };
 
+  const submitBooking = async () => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-booking-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Something went wrong.");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const err = validate();
     if (err) { setError(err); return; }
+
     setLoading(true);
     setError("");
+
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-booking-email`, {
+      // 1. Load Razorpay script dynamically
+      const loaded = await loadRazorpayScript();
+      if (!loaded) throw new Error("Could not load payment gateway. Please refresh and try again.");
+
+      // 2. Create order on server
+      const orderRes = await fetch("/api/razorpay/create-order", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: CONSULTATION_FEE }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Something went wrong.");
-      setStep(2);
+      const order = await orderRes.json();
+      if (!orderRes.ok) throw new Error(order.error || "Failed to create payment order.");
+
+      setLoading(false);
+
+      // 3. Open Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "Vedic Saar",
+        description: `Consultation — ${form.serviceType}`,
+        order_id: order.id,
+        prefill: {
+          name: form.name,
+          email: form.email,
+          contact: form.phone,
+        },
+        theme: { color: "#b8860b" },
+        handler: async function (response) {
+          setLoading(true);
+          try {
+            // 4. Verify payment signature server-side
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            });
+            const { verified } = await verifyRes.json();
+            if (!verified) throw new Error("Payment verification failed. Please contact support.");
+
+            // 5. Send booking email
+            await submitBooking();
+            setStep(2);
+          } catch (err) {
+            setError(err.message);
+          } finally {
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setError("Payment was cancelled. Please try again to confirm your booking.");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -200,6 +277,11 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
           font-size: 13px; color: #8b2012; margin-bottom: 18px;
           display: flex; align-items: center; gap: 8px;
         }
+        .bm-fee-note {
+          font-family: 'Glacial Indifference', sans-serif;
+          font-size: 11px; color: #9a8c7a; text-align: center;
+          margin-top: 12px; letter-spacing: 0.05em;
+        }
         .bm-submit {
           width: 100%; padding: 16px; background: #1a1206;
           border: 1px dashed white; border-radius: 2px;
@@ -264,7 +346,7 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
                   </svg>
                 </button>
                 <p className="bm-eyebrow">Begin Your Journey</p>
-                <h2 className="bm-title">Book a Consultation</h2>
+                <h2 className="bm-title">Book a <em>Consultation</em></h2>
               </div>
 
               <div className="bm-body">
@@ -344,10 +426,12 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
 
                   <button className="bm-submit" type="submit" disabled={loading}>
                     {loading
-                      ? <><span className="bm-spinner" /> Sending...</>
-                      : "Request Consultation"
+                      ? <><span className="bm-spinner" /> Processing...</>
+                      : `Pay ${FEE_DISPLAY} & Book`
                     }
                   </button>
+
+                  <p className="bm-fee-note">Secure payment via Razorpay · UPI, Cards, Net Banking accepted</p>
 
                 </form>
               </div>
@@ -361,10 +445,10 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               </div>
-              <h2 className="bm-success-title">Request Received</h2>
+              <h2 className="bm-success-title">Booking Confirmed</h2>
               <p className="bm-success-text">
                 Thank you, {form.name.split(" ")[0]}.<br />
-                We'll be in touch with you soon.
+                Payment received. We'll be in touch shortly to schedule your session.
               </p>
               <button className="bm-success-btn" onClick={onClose}>Close</button>
             </div>
