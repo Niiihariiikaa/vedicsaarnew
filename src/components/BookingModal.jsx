@@ -36,7 +36,7 @@ const SERVICES = [
   },
 ];
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL      = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Consultation fee in paise (₹500 = 50000)
@@ -102,17 +102,17 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
     return null;
   };
 
-  const submitBooking = async () => {
+  const submitBooking = async (paymentId) => {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-booking-email`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, paymentId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Something went wrong.");
+    if (!res.ok) throw new Error(data.message || "Failed to send confirmation.");
   };
 
   const handleSubmit = async (e) => {
@@ -135,7 +135,7 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
         body: JSON.stringify({ amount: CONSULTATION_FEE }),
       });
       const order = await orderRes.json();
-      if (!orderRes.ok) throw new Error(order.error || "Failed to create payment order.");
+      if (!orderRes.ok) throw new Error(order.error?.description || order.error || "Failed to create payment order.");
 
       setLoading(false);
 
@@ -165,8 +165,8 @@ export default function BookingModal({ isOpen, onClose, preselectedService = "" 
             const { verified } = await verifyRes.json();
             if (!verified) throw new Error("Payment verification failed. Please contact support.");
 
-            // 5. Send booking email
-            await submitBooking();
+            // 5. Send booking emails (admin + user)
+            await submitBooking(response.razorpay_payment_id);
             setStep(2);
           } catch (err) {
             setError(err.message);
